@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Required, Tuple
 from typing import Dict
 
 
@@ -16,12 +16,17 @@ def parse_binary(data: str, idx: int) -> Tuple[str, int]:
     print("parsing binary")
     value = ""
 
+    binary_string_size = ""
+    while data[idx] != ":":
+        binary_string_size += data[idx]
+        idx += 1
+
     # add plus 1 because of the semi colon
-    binary_string_size = int(data[idx])
+    binary_string_size = int(binary_string_size)
 
     print(f"tamanho da string binaria {binary_string_size}")
 
-    idx += 2
+    idx += 1
     idx_string = 0
 
     while idx_string < binary_string_size:
@@ -75,8 +80,15 @@ def parse_dict(data: str, idx: int) -> Tuple[Dict, int]:
     current_elem: str = data[idx]
 
     while current_elem != "e":
-        dict_key_size = int(current_elem)
-        idx += 2
+        binary_key_size = ""
+
+        while current_elem != ":":
+            binary_key_size += current_elem
+            idx += 1
+            current_elem = data[idx]
+
+        dict_key_size = int(binary_key_size)
+        idx += 1
 
         print(dict_key_size)
 
@@ -126,7 +138,7 @@ def parser(data: str) -> Any:
 
     while True:
         current_elem: str = data[idx]
-
+        print(idx, current_elem)
         if current_elem == "i":
             # integer found
             value, new_idx = parse_int(data, idx)
@@ -153,7 +165,10 @@ def parser(data: str) -> Any:
             result.append(value)
 
         else:
-            raise ValueError(f"Value not mapped in main loop {current_elem}")
+            breakpoint()
+            raise ValueError(
+                f"Value not mapped in main loop {current_elem}, idx = {idx}"
+            )
 
         idx += 1
         if idx >= len(data):
@@ -162,15 +177,34 @@ def parser(data: str) -> Any:
     return result
 
 
-parser("i42ei32ei40e3:AAAi42e4:WAGA")
-print("****")
-
-print(parser("ll4:spami42ee4:spami42ee"))
+# parser("i42ei32ei40e3:AAAi42e4:WAGA")
+# print("****")
 #
-TEST = "d3:bar4:spam3:fooi42ee"
-print(TEST)
-print(parser(TEST))
+# print(parser("ll4:spami42ee4:spami42ee"))
+# #
+# TEST = "d3:bar4:spam3:fooi42ee"
+# print(TEST)
+# print(parser(TEST))
 TEST = "d3:abcld3:bar4:spam3:fooli42ei300ei400eeeee"
 
 print(TEST)
 print(parser(TEST))
+#
+#
+
+
+# import argparse
+# p = argparse.ArgumentParser()
+# p.add_argument("--file")
+# args = p.parse_args()
+#
+#
+# with open(args.file, "rb") as file:
+#     data = file.read().decode("utf-8", errors="ignore")
+#     print(data[:100])
+#     r = parser(data)
+#
+#     print("\n" * 3)
+#     from pprint import pprint
+#
+#     pprint(r)
