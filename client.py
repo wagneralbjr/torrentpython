@@ -1,6 +1,6 @@
 import string
 import math
-from typing import Optional, Sequence, Dict
+from typing import List, NamedTuple, Optional, Sequence, Dict
 
 from typing import Any
 from pprint import pprint
@@ -17,6 +17,16 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger()
+
+PeersData = NamedTuple(
+    "PeersData",
+    [
+        ("complete", int),
+        ("incomplete", int),
+        ("interval", int),
+        ("peers", List[Dict[Any, Any]]),
+    ],
+)
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -89,13 +99,32 @@ def announce(torrent_data: Dict[Any, Any]) -> Any:
     return peers_data
 
 
+def parse_peers_data(p_data: Dict[Any, Any]) -> PeersData:
+    data = PeersData(
+        complete=p_data[b"complete"],
+        incomplete=p_data[b"incomplete"],
+        interval=p_data[b"interval"],
+        peers=p_data[b"peers"],
+    )
+    return data
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
 
     torrent_data = parse_torrent_file(args.file)
     # pprint(torrent_data)
     peers_data = announce(torrent_data)
-    pprint(peers_data)
+
+    if "failure_reason" in peers_data:
+        err_msg = f"There is a error in the announce metadata {peers_data}"
+        raise ValueError(err_msg)
+
+    print(peers_data)
+
+    peers_data = parse_peers_data(peers_data)
+
+    print(peers_data)
 
     return 0
 

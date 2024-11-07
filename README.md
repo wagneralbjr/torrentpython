@@ -10,3 +10,10 @@ https://wiki.theory.org/BitTorrent_Tracker_Protocol
 https://wiki.theory.org/BitTorrentSpecification#Tracker_Request_Parameters  
 https://www.cs.swarthmore.edu/~aviv/classes/f12/cs43/labs/lab5/lab5.pdf  
 https://allenkim67.github.io/programming/2016/05/04/how-to-make-your-own-bittorrent-client.html  
+
+
+
+http://www.dsc.ufcg.edu.br/~nazareno/bt/bt.htm
+
+
+explains about protocol use, what to expect from the messages and possible codes
