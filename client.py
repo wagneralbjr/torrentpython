@@ -109,6 +109,16 @@ def parse_peers_data(p_data: Dict[Any, Any]) -> PeersData:
     return data
 
 
+def buid_handshake(
+    info_hash: Dict[Any, Any],
+    peer_id: bytes,
+    protocolstring: str = "BitTorrent",
+):
+    """handshake: <pstrlen><pstr><reserved><info_hash><peer_id>"""
+
+    res = b""
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
 

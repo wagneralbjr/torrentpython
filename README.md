@@ -17,3 +17,8 @@ http://www.dsc.ufcg.edu.br/~nazareno/bt/bt.htm
 
 
 explains about protocol use, what to expect from the messages and possible codes
+
+
+
+### how to implement the tracker response
+https://wiki.theory.org/BitTorrentSpecification#Tracker_Response

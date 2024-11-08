@@ -1,0 +1,50 @@
+# Endianesss
+
+
+bigendiannes vs little Endianesss
+
+
+smallest data group => byte (8bits)
+32bit word => 4bytes
+
+
+Big endian stores the most significant byte of a word in the smallest memory address
+Little endian store the less significant byte in the smallest memory address
+
+
+# peer wire protocol
+
+HANDSHAKER WITH "19BitTorrent Protocol" 
+THEN SEND the 20byte sha1 hash of bencoded info value
+
+### type of messages
+
+keepalives are sent one time each two minutes
+
+All non-keepalive messages start with a single byte which gives their type. The possible values are:
+
+    0 - choke
+    1 - unchoke
+    2 - interested
+    3 - not interested
+    4 - have
+    5 - bitfield
+    6 - request
+    7 - piece
+    8 - cancel
+
+'choke', 'unchoke', 'interested', and 'not interested' have no payload.
+
+bitfield is the first message if the downloader has something. downloaders that does not having nothing can skips this.
+
+
+have message payload is a single number, the index that downloader just completed and checked the hash of
+
+
+request message contains index, begin and length. The last two are byte offsets. Length is generally a power of two, unless it gets truncated by the end of file. All current implementations  use 2^15 and close connections which request an amount greater than 2^16.
+
+
+cancel messages have the same payload as request messages. they are sent to in the end.
+
+
+piece message contain a index, begin and a piece. Its
