@@ -48,3 +48,15 @@ cancel messages have the same payload as request messages. they are sent to in t
 
 
 piece message contain a index, begin and a piece. Its
+
+
+
+### Sockets
+
+can create a socket using `socket.socket()` if specify the socket type as `socket.SOCK_STREAM` the tcp protocol is utilyzed. When using `socket.SOCK_DGRAM` the UDP protocol is used.  
+
+link to study Sockets
+https://realpython.com/python-sockets/#multi-connection-client-and-server
+
+
+

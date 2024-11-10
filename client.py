@@ -51,15 +51,19 @@ def encode_info(info: bytes) -> bytes:
     return hash
 
 
-def announce(torrent_data: Dict[Any, Any]) -> Any:
+def build_random_peer_id() -> bytes:
+    random_peer_id = "".join(random.choices(string.ascii_lowercase, k=20))
+    random_peer_id = hashlib.sha1(str(random_peer_id).encode("utf-8")).digest()
+    return random_peer_id
+
+
+def announce(
+    torrent_data: Dict[Any, Any], info_hash: bytes, random_peer_id: bytes
+) -> Any:
     # breakpoint()
     b_encoded_string = torrent_data[b"info"]
 
-    info_hash = encode_info(b_encoded_string)
-
-    random_peer_id = "".join(random.choices(string.ascii_lowercase, k=20))
-
-    random_peer_id = hashlib.sha1(str(random_peer_id).encode("utf-8")).digest()
+    # info_hash = encode_info(b_encoded_string)
 
     uploaded = 0
     downloaded = 0
@@ -109,22 +113,37 @@ def parse_peers_data(p_data: Dict[Any, Any]) -> PeersData:
     return data
 
 
-def buid_handshake(
-    info_hash: Dict[Any, Any],
-    peer_id: bytes,
-    protocolstring: str = "BitTorrent",
-):
+def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string):
     """handshake: <pstrlen><pstr><reserved><info_hash><peer_id>"""
 
-    res = b""
+    handshake = str(len(protocol_string)).encode()
+    handshake += protocol_string.encode()
+    reserved = b"00000000"
+    handshake += reserved
+    handshake += info_hash
+    handshake += peer_id
+
+    print(type(handshake))
+    print(handshake)
+
+    return handshake
+
+
+def build_info_hash(torrent_data: Dict[Any, Any]) -> bytes:
+    b_encoded_string = torrent_data[b"info"]
+    info_hash = encode_info(b_encoded_string)
+
+    return info_hash
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
 
+    protocol_string = "BitTorrent protocol"
     torrent_data = parse_torrent_file(args.file)
-    # pprint(torrent_data)
-    peers_data = announce(torrent_data)
+    random_peer_id = build_random_peer_id()
+    info_hash = build_info_hash(torrent_data)
+    peers_data = announce(torrent_data, info_hash, random_peer_id)
 
     if "failure_reason" in peers_data:
         err_msg = f"There is a error in the announce metadata {peers_data}"
@@ -133,8 +152,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(peers_data)
 
     peers_data = parse_peers_data(peers_data)
-
     print(peers_data)
+    handshake = build_handshake(info_hash, random_peer_id, protocol_string)
+
+    print(handshake)
 
     return 0
 
