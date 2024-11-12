@@ -14,6 +14,10 @@ import requests
 
 import logging
 
+import socket
+
+from enum import Enum
+
 logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger()
@@ -118,7 +122,7 @@ def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string):
 
     handshake = str(len(protocol_string)).encode()
     handshake += protocol_string.encode()
-    reserved = b"00000000"
+    reserved = b"\0" * 8 * 8
     handshake += reserved
     handshake += info_hash
     handshake += peer_id
@@ -136,11 +140,61 @@ def build_info_hash(torrent_data: Dict[Any, Any]) -> bytes:
     return info_hash
 
 
+class IPVERSION(Enum):
+    IPV4 = socket.AF_INET
+    IPV6 = socket.AF_INET6
+
+
+def check_ip_protocol_version(possible_ip: bytes) -> Any:
+    possible_ip = possible_ip.decode("utf-8")  # type: ignore
+
+    if ":" not in str(possible_ip):
+        return IPVERSION.IPV4
+    else:
+        return IPVERSION.IPV6
+
+
+def fetch_pieces(peers_data: PeersData, handshake: bytes):
+    for peer in peers_data.peers:
+        IP_CONN_TYPE = check_ip_protocol_version(peer[b"ip"])
+
+        HOST = peer[b"ip"].decode("utf-8")
+        PORT = peer[b"port"]
+
+        if IP_CONN_TYPE == IPVERSION.IPV4:
+            CONN_TUPLE = (HOST, PORT)
+        else:
+            CONN_TUPLE = (HOST, PORT, 0, 0)
+
+        print(IP_CONN_TYPE)
+        print(CONN_TUPLE)
+        with socket.socket(
+            socket.AF_INET6,  # type: ignore
+            socket.SOCK_STREAM,
+        ) as s:
+            try:
+                s.settimeout(5)
+                s.connect(CONN_TUPLE)
+
+                s.sendall(handshake)
+
+                data = s.recv(2048)
+                print(data)
+
+                print(bencoder.decode(data))
+
+                print(data.decode())
+            except Exception as e:
+                print(e)
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
 
     protocol_string = "BitTorrent protocol"
     torrent_data = parse_torrent_file(args.file)
+
+    pprint(torrent_data)
     random_peer_id = build_random_peer_id()
     info_hash = build_info_hash(torrent_data)
     peers_data = announce(torrent_data, info_hash, random_peer_id)
@@ -156,6 +210,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     handshake = build_handshake(info_hash, random_peer_id, protocol_string)
 
     print(handshake)
+
+    fetch_pieces(peers_data, handshake)
 
     return 0
 
