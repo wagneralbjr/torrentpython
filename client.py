@@ -146,6 +146,7 @@ class IPVERSION(Enum):
 
 
 def check_ip_protocol_version(possible_ip: bytes) -> Any:
+    """find the type of connection"""
     possible_ip = possible_ip.decode("utf-8")  # type: ignore
 
     if ":" not in str(possible_ip):
@@ -163,13 +164,15 @@ def fetch_pieces(peers_data: PeersData, handshake: bytes):
 
         if IP_CONN_TYPE == IPVERSION.IPV4:
             CONN_TUPLE = (HOST, PORT)
+            SOCKET_TYPE = socket.AF_INET
         else:
             CONN_TUPLE = (HOST, PORT, 0, 0)
+            SOCKET_TYPE = socket.AF_INET6
 
         print(IP_CONN_TYPE)
         print(CONN_TUPLE)
         with socket.socket(
-            socket.AF_INET6,  # type: ignore
+            SOCKET_TYPE,  # type: ignore
             socket.SOCK_STREAM,
         ) as s:
             try:
