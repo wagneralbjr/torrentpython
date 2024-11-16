@@ -19,6 +19,8 @@ import socket
 from enum import Enum
 import struct
 
+import asyncio
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -220,20 +222,27 @@ def fetch_pieces(peers_data: PeersData, handshake: bytes):
                 s.sendall(handshake)
 
                 print("Dados recebidos")
-                data = s.recv(4)
-                print(data)
-
-                msg_size = int.from_bytes(data, byteorder="big")
-                logging.info(f"The message size is {msg_size}")
-
                 data = s.recv(1)
-
-                print(f"data type")
-                print(len(data))
                 print(data)
 
-                print(f"The message type is {int.from_bytes(data[:1])}")
+                if data != b"\x13":
+                    logging.info(f"Could not handshake with {CONN_TUPLE}")
+                    continue
 
+                data = s.recv(19)
+                bittorrent_protocol = data.decode()
+
+                if bittorrent_protocol != "BitTorrent protocol":
+                    logging.error("This is not talking in bittorrent protocol")
+
+                protocol_version = s.recv(8)
+
+                print(f"Protocol Version={protocol_version}")
+                info_hash = s.recv(20)
+                print(f"Protocol InfoHash={info_hash}")
+
+                peer_id = s.recv(20)
+                print(f"Peer_ID={peer_id}")
             except Exception as e:
                 print(e)
 
