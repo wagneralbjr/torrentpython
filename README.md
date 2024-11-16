@@ -44,3 +44,8 @@ struct.pack("<h", 1023)
 ```
 ### asyncio way to implement
 https://stackoverflow.com/questions/48506460/python-simple-socket-client-server-using-asyncio
+
+
+
+### implementing map reduce
+https://eecs485staff.github.io/p4-mapreduce/threads-sockets.html
