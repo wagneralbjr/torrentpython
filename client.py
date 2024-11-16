@@ -1,25 +1,17 @@
 import string
 import math
 from typing import List, NamedTuple, Optional, Sequence, Dict
-
 from typing import Any
 from pprint import pprint
 import bencoder
 import random
-
 import argparse
-
 import hashlib
 import requests
-
 import logging
-
 import socket
-
 from enum import Enum
 import struct
-
-import asyncio
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -90,14 +82,8 @@ def build_random_peer_id() -> bytes:
 def announce(
     torrent_data: Dict[Any, Any], info_hash: bytes, random_peer_id: bytes
 ) -> Any:
-    # breakpoint()
-    b_encoded_string = torrent_data[b"info"]
-
-    # info_hash = encode_info(b_encoded_string)
-
     uploaded = 0
     downloaded = 0
-    # left = torrent_data[b"info"][b"pieces"]
     event = "started"
     total_length = math.ceil(
         int(torrent_data[b"info"][b"length"])
@@ -105,11 +91,6 @@ def announce(
     )
 
     url_announce = torrent_data[b"announce"].decode()
-
-    # print(url_announce)
-    #
-    # print(info_hash)
-    # print(random_peer_id)
 
     params = {
         "info_hash": info_hash,
@@ -213,25 +194,17 @@ def fetch_pieces(peers_data: PeersData, handshake: bytes):
                 print("Dados recebidos")
                 data = s.recv(1)
                 print(data)
-
                 if data != b"\x13":
                     logging.info(f"Could not handshake with {CONN_TUPLE}")
                     continue
-
                 data = s.recv(19)
                 bittorrent_protocol = data.decode()
-
                 if bittorrent_protocol != "BitTorrent protocol":
                     logging.error("This is not talking in bittorrent protocol")
-
                 protocol_version = s.recv(8)
-
-                print(f"Protocol Version={protocol_version}")
                 info_hash = s.recv(20)
-                print(f"Protocol InfoHash={info_hash}")
-
                 peer_id = s.recv(20)
-                print(f"Peer_ID={peer_id}")
+                print(f"Connected with Peer_ID={peer_id}")
             except Exception as e:
                 print(e)
 
@@ -251,7 +224,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raise ValueError(err_msg)
 
     peers_data = parse_peers_data(peers_data)
-    print(peers_data)
     handshake = build_handshake(info_hash, random_peer_id, protocol_string)
 
     logging.info(f"{handshake}")

@@ -42,6 +42,5 @@ struct.pack(">h", 1023)
 struct.pack("<h", 1023)
 # b'\xff\x03`
 ```
-
-
-
+### asyncio way to implement
+https://stackoverflow.com/questions/48506460/python-simple-socket-client-server-using-asyncio
