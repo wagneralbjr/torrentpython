@@ -19,6 +19,7 @@ import socket
 from enum import Enum
 import struct
 
+
 logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger()
@@ -58,6 +59,7 @@ Message = NamedTuple(
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", type=str, required=True)
+    parser.add_argument("--debug", type=bool, required=False, default=False)
 
     args = parser.parse_args(argv)
 
@@ -102,10 +104,10 @@ def announce(
 
     url_announce = torrent_data[b"announce"].decode()
 
-    print(url_announce)
-
-    print(info_hash)
-    print(random_peer_id)
+    # print(url_announce)
+    #
+    # print(info_hash)
+    # print(random_peer_id)
 
     params = {
         "info_hash": info_hash,
@@ -117,9 +119,8 @@ def announce(
         "event": event,
     }
 
-    print(params)
-
     logger.info("Announcing the torrent to download")
+    logging.info(f"params={params}")
     r = requests.get(url_announce, params=params)
 
     logger.info(f"status_code={r.status_code}")
@@ -139,20 +140,33 @@ def parse_peers_data(p_data: Dict[Any, Any]) -> PeersData:
     return data
 
 
-def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string):
+def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string: str):
     """handshake: <pstrlen><pstr><reserved><info_hash><peer_id>"""
 
     if len(info_hash) != 20:
         raise ValueError("Wrong number of byutes with info_hash")
 
-    handshake = str(len(protocol_string)).encode()
-    handshake += protocol_string.encode()
-    reserved = b"\x00" * 8
-    handshake += reserved
-    handshake += info_hash
-    handshake += peer_id
+    # handshake = str(len(protocol_string)).encode()
+    # handshake += protocol_string.encode()
+    # reserved = b"\x00" * 8
+    # handshake += reserved
+    # handshake += info_hash
+    # handshake += peer_id
 
-    print(type(handshake))
+    # print(type(handshake))
+    # print(handshake)
+    #
+    #
+    reserved = b"\x00" * 8
+    handshake = struct.pack(
+        ">B{}s8s20s20s".format(len(protocol_string)),
+        len(protocol_string),
+        protocol_string.encode(),
+        reserved,
+        info_hash,
+        peer_id,
+    )
+
     print(handshake)
 
     return handshake
@@ -171,7 +185,7 @@ class IPVERSION(Enum):
 
 
 def check_ip_protocol_version(possible_ip: bytes) -> Any:
-    """find the type of connection"""
+    """find the .encode()type of connection"""
     possible_ip = possible_ip.decode("utf-8")  # type: ignore
 
     if ":" not in str(possible_ip):
@@ -208,8 +222,13 @@ def fetch_pieces(peers_data: PeersData, handshake: bytes):
                 print("Dados recebidos")
                 data = s.recv(4)
                 print(data)
-                msg_size = int.from_bytes(data)
+
+                msg_size = int.from_bytes(data, byteorder="big")
+                logging.info(f"The message size is {msg_size}")
+
                 data = s.recv(1)
+
+                print(f"data type")
                 print(len(data))
                 print(data)
 
@@ -225,7 +244,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     protocol_string = "BitTorrent protocol"
     torrent_data = parse_torrent_file(args.file)
 
-    pprint(torrent_data)
     random_peer_id = build_random_peer_id()
     info_hash = build_info_hash(torrent_data)
     peers_data = announce(torrent_data, info_hash, random_peer_id)
@@ -240,7 +258,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(peers_data)
     handshake = build_handshake(info_hash, random_peer_id, protocol_string)
 
-    print(handshake)
+    logging.info(f"{handshake}")
 
     fetch_pieces(peers_data, handshake)
 

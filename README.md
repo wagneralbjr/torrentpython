@@ -29,3 +29,19 @@ https://wiki.theory.org/BitTorrentSpecification#Tracker_Response
 ### Entender o formato de handshake
 
 https://github.com/gallexis/PyTorrent/blob/master/message.py
+
+
+### Big Endian vs Little Endian
+
+Can use struct Module to apply format and parse network conn.
+
+```
+import struct
+struct.pack(">h", 1023)
+# b'\x03\xff`
+struct.pack("<h", 1023)
+# b'\xff\x03`
+```
+
+
+
