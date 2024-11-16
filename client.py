@@ -17,6 +17,7 @@ import logging
 import socket
 
 from enum import Enum
+import struct
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,6 +30,27 @@ PeersData = NamedTuple(
         ("incomplete", int),
         ("interval", int),
         ("peers", List[Dict[Any, Any]]),
+    ],
+)
+
+
+class MessageType(Enum):
+    MSG_CHOCKE = 0
+    MSG_UNCHOCKE = 1
+    MSG_INTERESTED = 2
+    MSG_NOT_INTERESTED = 3
+    MSG_HAVE = 4
+    MSG_BITFIELD = 5
+    MSG_REQUEST = 6
+    MSG_PIECE = 7
+    MSG_CANCEL = 8
+
+
+Message = NamedTuple(
+    "Message",
+    [
+        ("id", MessageType),
+        ("payload", bytes),
     ],
 )
 
@@ -120,9 +142,12 @@ def parse_peers_data(p_data: Dict[Any, Any]) -> PeersData:
 def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string):
     """handshake: <pstrlen><pstr><reserved><info_hash><peer_id>"""
 
+    if len(info_hash) != 20:
+        raise ValueError("Wrong number of byutes with info_hash")
+
     handshake = str(len(protocol_string)).encode()
     handshake += protocol_string.encode()
-    reserved = b"\0" * 8 * 8
+    reserved = b"\x00" * 8
     handshake += reserved
     handshake += info_hash
     handshake += peer_id
@@ -178,15 +203,18 @@ def fetch_pieces(peers_data: PeersData, handshake: bytes):
             try:
                 s.settimeout(5)
                 s.connect(CONN_TUPLE)
-
                 s.sendall(handshake)
 
-                data = s.recv(2048)
+                print("Dados recebidos")
+                data = s.recv(4)
+                print(data)
+                msg_size = int.from_bytes(data)
+                data = s.recv(1)
+                print(len(data))
                 print(data)
 
-                print(bencoder.decode(data))
+                print(f"The message type is {int.from_bytes(data[:1])}")
 
-                print(data.decode())
             except Exception as e:
                 print(e)
 

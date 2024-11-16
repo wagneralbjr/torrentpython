@@ -22,3 +22,10 @@ explains about protocol use, what to expect from the messages and possible codes
 
 ### how to implement the tracker response
 https://wiki.theory.org/BitTorrentSpecification#Tracker_Response
+
+
+
+
+### Entender o formato de handshake
+
+https://github.com/gallexis/PyTorrent/blob/master/message.py
