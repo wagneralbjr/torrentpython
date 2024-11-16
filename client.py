@@ -148,17 +148,6 @@ def build_handshake(info_hash: bytes, peer_id: bytes, protocol_string: str):
     if len(info_hash) != 20:
         raise ValueError("Wrong number of byutes with info_hash")
 
-    # handshake = str(len(protocol_string)).encode()
-    # handshake += protocol_string.encode()
-    # reserved = b"\x00" * 8
-    # handshake += reserved
-    # handshake += info_hash
-    # handshake += peer_id
-
-    # print(type(handshake))
-    # print(handshake)
-    #
-    #
     reserved = b"\x00" * 8
     handshake = struct.pack(
         ">B{}s8s20s20s".format(len(protocol_string)),
@@ -260,8 +249,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if "failure_reason" in peers_data:
         err_msg = f"There is a error in the announce metadata {peers_data}"
         raise ValueError(err_msg)
-
-    print(peers_data)
 
     peers_data = parse_peers_data(peers_data)
     print(peers_data)
